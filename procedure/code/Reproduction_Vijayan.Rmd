@@ -1,0 +1,581 @@
+---
+title: "Reproduction_Vijayan"
+author: "Xin Wang and Sarah Bardin"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# script to install packages if not already installed
+packages = c("sf", "tidyverse", "ggplot2", "here", "spdep", "rgdal", "spatialreg", "car", "ggplot2", "dplyr")
+setdiff(packages, rownames(installed.packages()))
+install.packages(setdiff(packages, rownames(installed.packages())), quietly=TRUE)
+
+rm(list=ls())
+set.seed(59134)
+
+library(sf)
+library(tidyverse)
+library(ggplot2)
+library(here)
+library(spdep)
+library(rgdal)
+library(spatialreg)
+library(car)
+library(ggmap)
+library(dplyr)
+
+```
+
+## Data preprocessing
+
+We first read in the raw dataset, which was obtained from the original authors of the paper. We rename the variables to more meaningful names and calculate three variables needed for analysis. We then restrict the data set to the analysis sample per the description provided in the original paper. Specifically, we filter to observations with non-missing COVID data (non-missing testing data and non-missing rate data) and with populations of at least 1000 people. We then further restrict to hexagons with contiguous neighbors.
+
+```{r read data}
+#-- Read in data file --#
+ds_orig <- read_sf(here("data", "raw", "private", "LAhex_ACS_MOVED_703_UTM11N.shp"))
+
+#-- Filter to analysis sample --#
+ds_restricted <- ds_orig %>% 
+                        filter(DP05_0001E >= 1000 & !is.na(tested630_) & !is.na(crt630_mea)) %>%
+                        rename(age18     = DP05_0019P, 
+                               age65     = DP05_0024P,
+                               latino    = DP05_0071P, 
+                               white     = DP05_0037P,
+                               black     = DP05_0038P, 
+                               asian     = DP05_0044P,
+                               poverty   = DP03_0119P, 
+                               uninsured = DP03_0099P,
+                               bachelor  = DP02_0067P, 
+                               pop.tot   = DP05_0001E,
+                               hh_tot    = DP05_0086E,
+                               tests     = tested630_,
+                               cases     = cases630_s,
+                               fid       = fid, 
+                               area      = areasqkm, 
+                               adjdrt    = adjdrt630_, 
+                               adjtrt    = adjtrt630_,
+                               westside  = Westside) %>%
+                        mutate(pop.dens  = pop.tot/10,      # calculate population density
+                               hh.dens   = pop.tot/hh_tot,  # calculate household density
+                               prt       = 100*cases/tests, # calculate crude positivity rates
+                               prt_level = 0)               # create variable to fill with values later 
+
+QN <- poly2nb(ds_restricted, queen = T) # queen neighbors for each polygon
+cards <- card(QN) # number of neighbors for each hexagon
+no.neighbor.id <- which(cards == 0) # row id for hexagons containing 0 neighbors
+ds_analysis <- ds_restricted[-no.neighbor.id,]
+
+```
+
+## Descriptive characteristics of the data
+### Correlates of test positivity
+
+To reproduce summary statistics from Table 1 of original analysis, we first need to create a categorical variable based on the continuous positivity rate (prt). The variable prt_level divides observations into 3 mutually exclusive categories (< 5%, 5% < 10%, and 10% or greater). We then take the mean and standard deviation of key covariates to reproduce Table 1. We also performed one-way ANOVA tests to assess for differences in mean values across subgroups. Vijayan et al. noted in-text that they performed "correlational analysis" but based on the presentation of the findings, it appeared that either ANOVA or Kruskal-Wallis tests were used to assess differences across the 3 subgroups. Given that we were able to identically reproduce the reported p-value for the only non-significant result using ANOVA, we suspect that ANOVA was performed for all variables regardless of the underlying distribution.
+
+```{r anova}
+# divide hexagons into 3 groups according to the positivity rate
+for (i in 1:nrow(ds_analysis)) {
+  if (ds_analysis$prt[i] < 5) ds_analysis$prt_level[i] <- "Low"
+  if (ds_analysis$prt[i] >= 5 & ds_analysis$prt[i] < 10) ds_analysis$prt_level[i] <- "Med"
+  if (ds_analysis$prt[i] >= 10) ds_analysis$prt_level[i] <- "High"
+}
+table(ds_analysis$prt_level)
+
+# generate the descriptive statistics of the independent variables
+data.sum <- ds_analysis %>%
+  group_by(factor(prt_level)) %>%
+  summarise(no.hex = length(prt_level),
+            age18 = paste0(round(mean(age18, na.rm = T),1)," ","(",round(sd(age18, na.rm = T),2),")"),
+            age65 = paste0(round(mean(age65, na.rm = T),1)," ","(",round(sd(age65, na.rm = T),2),")"),
+            white = paste0(round(mean(white, na.rm = T),1)," ","(",round(sd(white, na.rm = T),2),")"),
+            black = paste0(round(mean(black, na.rm = T),1)," ","(",round(sd(black, na.rm = T),2),")"),
+            asian = paste0(round(mean(asian, na.rm = T),1)," ","(",round(sd(asian, na.rm = T),2),")"),
+            latino = paste0(round(mean(latino, na.rm = T),1)," ","(",round(sd(latino, na.rm = T),2),")" ),
+            poverty = paste0(round(mean(poverty, na.rm = T),1)," ","(",round(sd(poverty, na.rm = T),2),")" ),
+            uninsured = paste0(round(mean(uninsured, na.rm = T),1)," ","(",round(sd(uninsured, na.rm = T),2),")"),
+            bachelor = paste0(round(mean(bachelor, na.rm = T),1)," ","(",round(sd(bachelor, na.rm = T),2),")"),
+            pop.dens = paste0(round(mean(pop.dens, na.rm = T),1)," ","(",round(sd(pop.dens, na.rm = T),2),")"),
+            hh.dens = paste0(round(mean(hh.dens, na.rm = T),1)," ","(",round(sd(hh.dens, na.rm = T),2),")"))
+
+#----------------------------------------------------------------------#
+#-- Compute the analysis of variance (ANOVA) and post-hoc Tukey test --#
+#----------------------------------------------------------------------#
+
+#- Create function to perform ANOVA, post-hoc tukey test, and checks for normality and homoscedasticity -#
+
+anova_test <- function (p)  {
+  count = 1   ## create counter
+  
+  #-- Create empty lists to hold needed elements in return list --#
+  pval <- list()
+  hov <- list()
+  norm_test <- list()
+  krusk_pval <- list()
+
+  #-- Loop over each of the predictors, perform ANOVA, extract p-values --#
+  for (p in predictors) {
+  
+    print(paste("--------- RUNNING ANOVA FOR", quo_name(p), "-------------"))
+    
+    res.aov <- aov(as.formula(paste(p, "~", "prt_level")), data = ds_analysis) 
+    pval[[count]] <-  summary(res.aov)[[1]][1,5] ## store p-value from ANOVA to add to Table 1
+    print(TukeyHSD(res.aov))  ## look at post-hoc Tukey test results
+
+    #--Identify variables that fail ANOVA assumptions
+    hov[[count]] <- leveneTest(as.formula(paste(p, "~", "prt_level")), data = ds_analysis)$"Pr(>F)"[1]  ## assess homogeneity of variances
+    norm_test[[count]] <- shapiro.test(x = residuals(object = res.aov))$p.value  ## assess normality assumption
+
+    
+    print(paste("--------- RUNNING KRUSKAL-WALLIS FOR", quo_name(p), "-------------"))
+    res.krusk <- kruskal.test(as.formula(paste(p, "~", "prt_level")), data = ds_analysis) 
+    krusk_pval[[count]] <-  res.krusk$p.value ## store p-value from ANOVA to add to Table 1
+    
+        
+    #--Create list of ANOVA results for reporting purposes
+    aov_results <- (list("pvalue" = pval, "levene" = hov, "shapiro" = norm_test, "kruskal_pvalue" = krusk_pval))
+    count = count + 1
+  } 
+  
+  return(aov_results)
+}
+
+#- Define list of predictors and run ANOVA function -#
+predictors <- c("age18",
+                "age65",
+                "white",
+                "black",
+                "asian",
+                "latino",
+                "poverty",
+                "uninsured",
+                "bachelor",
+                "pop.dens",
+                "hh.dens")  
+aov_results <- anova_test(predictors)
+
+
+# Extract p-values from each ANOVA and merge with descriptive statistics to construct Table 1
+aov_pval <- as.data.frame(aov_results$pvalue)
+aov_pval2 <- as.data.frame(t(aov_pval))
+aov_pval2$row_num <- seq.int(nrow(aov_pval2))
+
+table1_summary <- as.data.frame(t(data.sum))
+table1_summary <- table1_summary %>%
+                      mutate(row_num = seq.int(nrow(table1_summary)) - 2,
+                             rowname = factor(colnames(data.sum)))
+
+table1 <- left_join(table1_summary, aov_pval2, by = "row_num")
+
+table1 <- table1 %>% 
+              filter(row_num<12 & row_num>=0) %>%
+              transmute(Variable = rowname,
+                        Low      = as.character(V2),
+                        Med      = as.character(V3),
+                        High     = as.character(V1.x),
+                        pval     = round(V1.y,3))
+
+write.csv(table1, here("results", "other", "Table1_summarystats.csv"))
+
+#--------------------------------------------------#
+#--Identify variables that fail ANOVA assumptions--#
+#--------------------------------------------------#
+
+# test the assumption of homogeneity of variance... used to asses if the groups have equal variances
+aov_levene <- as.data.frame(aov_results$levene)
+aov_levene2 <- as.data.frame(t(aov_levene))
+aov_levene2$row_num <- seq.int(nrow(aov_levene2))
+
+# to test the assumption of normality. Wilk’s test should not be significant to meet the assumption of normality.
+aov_shapiro <- as.data.frame(aov_results$shapiro)
+aov_shapiro2 <- as.data.frame(t(aov_shapiro))
+aov_shapiro2$row_num <- seq.int(nrow(aov_shapiro2))
+
+aov_assumptions <- inner_join(aov_shapiro2, aov_levene2, by = "row_num")
+aov_assumptions$failed = ifelse(aov_assumptions$V1.x<0.05 | aov_assumptions$V1.y <0.05,1,0)
+which(aov_assumptions$failed==1) ## all variables except for age18 and hh.dens fail ANOVA assumptions
+
+# Kruskal–Wallis H test, or one-way ANOVA on ranks is a non-parametric method for testing whether samples originate from the same distribution. It is used for comparing two or more independent samples of equal or different sample sizes
+aov_krusk<- as.data.frame(aov_results$kruskal_pvalue)
+aov_krusk2 <- as.data.frame(t(aov_krusk))
+aov_krusk2$row_num <- seq.int(nrow(aov_krusk2))
+which(aov_krusk2$V1>=0.05) ## only black is not statistically significant using kruskal wallis test
+```
+
+```{r natural earth basemap for LISA visualizations, message=FALSE, warning=FALSE}
+library(rnaturalearth)
+bbox = c(xmin = -119, ymin =  33.5, xmax = -117.5, ymax = 34.7)
+
+roads <- ne_download(scale = 10, 
+                 type = 'roads',
+                 "cultural",
+                 returnclass = "sf")
+
+#filter by major highway
+roads <- filter(roads, type == "Major Highway") %>%
+    st_make_valid() %>%
+    st_crop(bbox) 
+
+oceans <- ne_download(scale = 10, 
+                      type = "ocean_scale_rank",
+                      "physical",
+                      returnclass = "sf")
+oceans <- oceans %>%
+  st_make_valid() %>%
+  st_crop(bbox)
+
+places <- ne_download(scale = 10, 
+                      type = "populated_places",
+                      "cultural",
+                      returnclass = "sf")
+
+places <- places %>%
+  st_make_valid() %>%
+  st_crop(bbox)
+
+basemap <-  ggplot() + 
+  geom_sf(data = oceans, 
+          fill = "slategray2",
+          alpha = .9,
+          size = 0) + 
+  geom_sf(data = roads,
+          size = .2,
+          color = "gray50") +
+  geom_sf(data = places,
+          size = 1, 
+          color = "gray0") + 
+  geom_sf_text(data = places, 
+               label = places$NAME,
+               size = 2,
+               nudge_y = .03) 
+basemap
+```
+
+## LISA
+LISA analyses for the adjusted testing rate, adjusted diagnosis rate, and crude positivity rate were performed, using a queens weighting matrix. Although in the original analysis, only high-high and low-low clusters were mapped, for completeness we develop maps showing all statistically significant clusters based on a permutation approach. The original authors did not specify the number of simulations performed in their analysis, so we have left the default number (N= 499) for the purposes of our reproductions.
+
+```{r, message=FALSE, warning = FALSE}
+#-- Create spatial weights matrix --#
+QN <- poly2nb(ds_analysis, queen = T)
+QN1.lw <- nb2listw(QN, style = "B")
+W  <- as(QN1.lw, "symmetricMatrix")
+W <- as.matrix(W/rowSums(W)) ## row standardize
+W[which(is.na(W))] <- 0 ## assign NA to zero
+
+#-- set breaks to critical z values --#
+breaks <- c(-100, -2.58, -1.96, -1.65, 1.65, 1.96, 2.58, 100)
+
+#-----------------------------------------#
+#- Perform LISA on Adjusted Testing Rate -#
+#-----------------------------------------#
+
+I.test <- localmoran_perm(ds_analysis$adjtrt, QN1.lw, nsim=499)
+ds_analysis$test.I.zscore <- I.test[,4]
+
+# findInterval() assigns ranks to the zvalues based on which bin the z values would fall into 
+# where the bins are broken up by the "breaks" variable created above
+ds_analysis$test.I.zscore <- findInterval(ds_analysis$test.I.zscore, breaks, all.inside = TRUE)
+
+test.z <- scale(ds_analysis$adjtrt)[,1]
+patterns <- as.character(interaction(test.z > 0, W%*%test.z > 0))
+patterns <- patterns %>%
+  str_replace_all("TRUE","High") %>%
+  str_replace_all("FALSE","Low")
+
+patterns[ds_analysis$test.I.zscore  == 4] <- "Not significant"
+ds_analysis$test.pattern <- patterns
+
+ds_analysis$test.pattern2 <- factor(ds_analysis$test.pattern, 
+                              levels=c("High.High", "High.Low", "Low.High", "Low.Low", "Not significant"),
+                              labels=c("High - High", "High - Low", "Low - High",
+                                       "Low - Low", "Not significant"))
+
+test <- ggplot() +
+  geom_sf(data = oceans, 
+          fill = "slategray2",
+          alpha = .9,
+          size = 0) + 
+  geom_sf(data = roads,
+          size = .2,
+          color = "gray50") +
+  geom_sf(data=ds_analysis, 
+          aes(fill=test.pattern2),
+          size = .1,
+          inherit.aes = FALSE) +
+  theme_void() +
+  scale_fill_manual(values = c("tomato3", "slategray3", "white")) +
+  guides(fill = guide_legend(title="Cluster type")) +
+  labs(title="Adjusted Testing Rate Clusters")  +
+  theme(legend.position = "top") +
+  geom_sf(data = places,
+          size = 1, 
+          color = "gray0") + 
+  geom_sf_text(data = places, 
+               label = places$NAME,
+               size = 2,
+               nudge_y = .03) 
+               
+test
+
+
+#---------------------------------------------#
+#-- Perform LISA on Adjusted Diagnosis Rate --#
+#---------------------------------------------#
+
+I.test <- localmoran_perm(ds_analysis$adjdrt, QN1.lw, nsim=499)
+ds_analysis$diag.I.zscore <- I.test[,4]
+
+# findInterval() assigns ranks to the zvalues based on which bin the z values would fall into 
+# where the bins are broken up by the "breaks" variable created above
+ds_analysis$daig.I.zscore <- findInterval(ds_analysis$diag.I.zscore, breaks, all.inside = TRUE)
+
+diag.z <- scale(ds_analysis$adjdrt)[,1]
+patterns <- as.character(interaction(diag.z > 0, W%*%diag.z > 0))
+patterns <- patterns %>%
+  str_replace_all("TRUE","High") %>%
+  str_replace_all("FALSE","Low")
+
+patterns[ds_analysis$diag.I.zscore  == 4] <- "Not significant"
+ds_analysis$diag.pattern <- patterns
+
+ds_analysis$diag.pattern2 <- factor(ds_analysis$diag.pattern, 
+                              levels=c("High.High", "High.Low", "Low.High", "Low.Low", "Not significant"),
+                              labels=c("High - High", "High - Low", "Low - High",
+                                       "Low - Low", "Not significant"))
+
+diag <- ggplot() +
+  geom_sf(data = oceans, 
+          fill = "slategray2",
+          alpha = .9,
+          size = 0) +
+  geom_sf(data = roads,
+          size = .2,
+          color = "gray50") + 
+  geom_sf(data=ds_analysis, 
+          aes(fill=diag.pattern2),
+          size = .1,
+          inherit.aes = FALSE) +
+  theme_void() +
+  scale_fill_manual(values = c("tomato3", "salmon1", "slategray3", "steelblue", "white")) +
+  guides(fill = guide_legend(title="Cluster type")) +
+  labs(title="Adjusted Diagnosis Rate Clusters")  +
+  theme(legend.position = "top") +
+  geom_sf(data = places,
+          size = 1, 
+          color = "gray0") + 
+  geom_sf_text(data = places, 
+               label = places$NAME,
+               size = 2,
+               nudge_y = .03) 
+diag
+
+#-----------------------------------#
+#- Perform LISA on Positivity Rate -#
+#-----------------------------------#
+I.test <- localmoran_perm(ds_analysis$prt, QN1.lw, nsim=499)
+ds_analysis$pos.I.zscore <- I.test[,4]
+
+# findInterval() assigns ranks to the zvalues based on which bin the z values would fall into 
+# where the bins are broken up by the "breaks" variable created above
+ds_analysis$pos.I.zscore <- findInterval(ds_analysis$pos.I.zscore, breaks, all.inside = TRUE)
+
+pos.z <- scale(ds_analysis$prt)[,1]
+patterns <- as.character(interaction(pos.z > 0, W%*%pos.z > 0))
+patterns <- patterns %>%
+  str_replace_all("TRUE","High") %>%
+  str_replace_all("FALSE","Low")
+
+patterns[ds_analysis$pos.I.zscore  == 4] <- "Not significant"
+ds_analysis$pos.pattern <- patterns
+
+ds_analysis$pos.pattern2 <- factor(ds_analysis$pos.pattern, 
+                              levels=c("High.High", "High.Low", "Low.High", "Low.Low", "Not significant"),
+                              labels=c("High - High", "High - Low", "Low - High",
+                                       "Low - Low", "Not significant"))
+
+pos <- ggplot() + 
+  geom_sf(data = oceans, 
+          fill = "slategray2",
+          alpha = .9,
+          size = 0) +
+  geom_sf(data = roads,
+          size = .2,
+          color = "gray50") +
+  geom_sf(data=ds_analysis, 
+          aes(fill=pos.pattern2),
+          size = .1,
+          inherit.aes = FALSE) +
+  theme_void() +
+  scale_fill_manual(values = c("tomato3", "salmon1", "slategray3", "steelblue", "white")) +
+  guides(fill = guide_legend(title="Cluster type")) +
+  labs(title="Positivity Rate Clusters")  +
+  theme(legend.position = "top") +
+  geom_sf(data = places,
+          size = 1, 
+          color = "gray0") + 
+  geom_sf_text(data = places, 
+               label = places$NAME,
+               size = 2,
+               nudge_y = .03) 
+pos
+
+# For a more zoomed in map, you need to adjust the values of bbox & omit the two isolated pairs of hexagons from the ds_analysis data frame
+```
+
+
+## Spatially lagged models
+### Main Results
+Below we reproduce Table 2 of the original paper by running an SAR model where our dependent variable is the crude positivity rate and our independent variables include age, race, poverty, uninsurance, education, population density, and household density (which is really average household size)
+
+```{r SAR positivity rate, warning=FALSE}
+#-- Center the variables to a mean of 0 and scale to an sd of 1 --#
+ds_analysis_centered <- ds_analysis %>%
+  mutate_at(c("adjtrt", "adjdrt", "prt", "age18", "age65", "latino", "white", "black", "asian", "poverty", "uninsured", "bachelor", "pop.dens", "hh.dens"), ~(scale(.) %>% as.vector))
+
+#---------------------------------------------#
+#-- Perform SAR on Crude Positivity Rate --#
+#---------------------------------------------#
+
+#-- Define the regression equation --#
+reg.eq1 <- prt ~ age18 + age65 + latino + white + black + asian +  poverty + uninsured + bachelor + pop.dens + hh.dens -1
+
+SReg.SAR1 = lagsarlm(reg.eq1, data = ds_analysis_centered, QN1.lw)
+
+#-- get the total, indirect, and direct effects --#
+check <- summary(SReg.SAR1)
+impacts.SAR1 <- summary(impacts(SReg.SAR1, listw = QN1.lw, R = 499), zstats = TRUE)
+```
+
+
+### Supplemental Results
+Below we reproduce the supplemental results from the original paper by running an SAR model where our dependent variable is the adjusted diagnosis rate and our independent variables include race, poverty, uninsurance, education, population density, and household density (which is really average household size). We repeat the same analysis using the adjusted testing rate as our dependent variable.
+
+```{r}
+#---------------------------------------------#
+#-- Perform SAR on Adjusted Diagnosis Rate --#
+#---------------------------------------------#
+
+# Define the regression equation
+reg.eq2 <- adjdrt ~ latino + white + black + asian + poverty + uninsured + bachelor + pop.dens + hh.dens - 1
+
+SReg.SAR2 = lagsarlm(reg.eq2, data = ds_analysis_centered, QN1.lw)
+
+#-- get the total, indirect, and direct effects --#
+summary(SReg.SAR2)
+impacts.SAR2 <- summary(impacts(SReg.SAR2, listw = QN1.lw, R = 499), zstats = TRUE)
+
+#---------------------------------------------#
+#-- Perform SAR on Adjusted Testing Rate --#
+#---------------------------------------------#
+
+# Define the regression equation
+reg.eq3 <- adjtrt ~ latino + white + black + asian + poverty + uninsured + bachelor + pop.dens + hh.dens - 1
+
+SReg.SAR3 = lagsarlm(reg.eq3, data = ds_analysis_centered, QN1.lw)
+
+#-- get the total, indirect, and direct effects --#
+summary(SReg.SAR3)
+impacts.SAR3 <- summary(impacts(SReg.SAR3, listw = QN1.lw, R = 499), zstats = TRUE)
+```
+
+
+## RA Map Script
+
+Here is the script for saving the 3 maps as .pngs.... 
+
+The one issue we are having is trying to get a good base-map on here
+
+```{r}
+# testing rate clusters map
+ggsave(
+  here("results", "maps", "AdjustTestRateClusters_fig1.png"),
+  plot = test,
+  width = 11,
+  height = 8.5,
+  bg = "white",
+  unit = "in")
+
+# diagnosis rate clusters map
+ggsave(
+  here("results", "maps", "AdjustDiagRateClusters_fig1.png"),
+  plot = diag,
+  width = 11,
+  height = 8.5,
+  bg = "white",
+  unit = "in")
+
+# positivity rate clusters map
+ggsave(
+  here("results", "maps", "AdjustPosRateClusters_fig1.png"),
+  plot = pos,
+  width = 11,
+  height = 8.5,
+  bg = "white",
+  unit = "in")
+```
+
+## RA Table Script (exports tables 2, 3, and 4 as .csv)
+
+Here is how we tried to output your table 2, 3, and 4 results:
+We are having 2 issues in trying to reproduce the exact tables:
+
+1) We cannot find the same results from the outputs for "indirect' or 'total' from the lagsarlm() functions... The 'indirect' and 'total' results we are getting are entirely different and although the function outputs the correct p-value, we cannot locate it in a stored list so that we can put it into a table
+
+2) While I have found a way to append the 'rho' value to the 'estimate', I can't locate the SE rho value and, like all the other predictor values, I can't find its p-value.
+
+```{r}
+# (note that we saved the impact testing results as impact.SAR1, impact.SAR2 and impact.SAR3)
+
+## SLM for crude positivity rates
+# Bind together the lists from the different outputs to create data frames
+table2_norho <- do.call(rbind,Map(data.frame,
+                            Estimate = SReg.SAR1[["coefficients"]], 
+                            SE = SReg.SAR1[["rest.se"]],
+                            Direct = impacts.SAR1[["res"]][["direct"]],
+                            Indirect = impacts.SAR1[["res"]][["indirect"]],
+                            Total = impacts.SAR1[["res"]][["total"]]
+                            #P = ??
+                             ))
+
+# append rho value to the end of the table
+table_3 <- rbind(table2_norho, rho = c(SReg.SAR1[["rho"]], NA, NA, NA, NA, NA))
+
+
+write.csv(table2, here("results", "other", "Table2_SLM_CPR.csv"))
+
+## SLM for Age adjusted diagnosis rates
+# Bind together the lists from the different outputs to create data frames
+table3_norho <- do.call(rbind, Map(data.frame,
+                             Estimate = SReg.SAR2[["coefficients"]] , 
+                             SE = SReg.SAR2[["rest.se"]],
+                             Direct = impacts.SAR2[["res"]][["direct"]],
+                             Indirect = impacts.SAR2[["res"]][["indirect"]],
+                             Total = impacts.SAR2[["res"]][["total"]]
+                             #P = ??
+                             ))
+
+# append rho value to the end of the table
+table_3 <- rbind(table3_norho, rho = c(SReg.SAR2[["rho"]], NA, NA, NA, NA, NA))
+
+write.csv(table3, here("results", "other", "Table3_SLM_AAPR.csv"))
+
+## SLM for Age adjust testing rates
+# Bind together the lists from the different outputs to create data frames
+table4_norho <- do.call(rbind, Map(data.frame,
+                             Estimate = SReg.SAR3[["coefficients"]],SReg.SAR3[["rho"]], 
+                             SE = SReg.SAR3[["rest.se"]],
+                             Direct = impacts.SAR3[["res"]][["direct"]],
+                             Indirect = impacts.SAR3[["res"]][["indirect"]],
+                             Total = impacts.SAR3[["res"]][["total"]]
+                             #P = ??
+                             ))   
+
+
+# append rho value to the end of the table
+table4 <- rbind(table4_norho, rho = c(SReg.SAR3[["rho"]], NA, NA, NA, NA, NA))
+
+write.csv(table4, here("results", "other", "Table4_SLM_AATR.csv"))
+```
+
+
