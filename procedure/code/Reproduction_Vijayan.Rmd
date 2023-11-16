@@ -1,6 +1,6 @@
 ---
 title: "Reproduction_Vijayan"
-author: "Xin Wang and Sarah Bardin"
+author: "Xin Wang, Sarah Bardin, Katie Heo, Alex Xu"
 output: html_document
 ---
 
