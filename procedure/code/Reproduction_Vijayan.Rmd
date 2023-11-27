@@ -20,7 +20,7 @@ library(tidyverse)
 library(ggplot2)
 library(here)
 library(spdep)
-library(rgdal)
+#library(rgdal)
 library(spatialreg)
 library(car)
 library(ggmap)
@@ -440,11 +440,19 @@ ds_analysis_centered <- ds_analysis %>%
 #-- Define the regression equation --#
 reg.eq1 <- prt ~ age18 + age65 + latino + white + black + asian +  poverty + uninsured + bachelor + pop.dens + hh.dens -1
 
-SReg.SAR1 = lagsarlm(reg.eq1, data = ds_analysis_centered, QN1.lw)
+SReg.SAR1 = lagsarlm(reg.eq1, data = na.omit(ds_analysis_centered), QN1.lw)
+
+# Check the spatial weights matrix
+print(QN1.lw)
+
+# Check the number of observations
+n_obs <- nrow(ds_analysis_centered)
+
 
 #-- get the total, indirect, and direct effects --#
 check <- summary(SReg.SAR1)
-impacts.SAR1 <- summary(impacts(SReg.SAR1, listw = QN1.lw, R = 499), zstats = TRUE)
+impacts.SAR1 <- impacts(SReg.SAR1, listw = QN1.lw, R = 499)
+
 ```
 
 
