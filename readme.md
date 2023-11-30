@@ -62,10 +62,10 @@ Vijayan et al. (2020) examined whether spatial patterns existed in SARS-CoV-2 ag
 
 This research compendium is structured with four main directories:
 The contents of this repository are outlined in three tables:
-- Data: [data/data_metadata.csv](data/data_metadata.csv) , contains subdirectories for `raw` data and `derived` data.
+- Data: contains subdirectories for `raw` data and `derived` data.
 - Docs: contains subdirectories for 'manuscript','presentation', and 'report'
-- Procedures: [procedure/procedure_metadata.csv](procedure/procedure_metadata.csv) , contains subdirectories for `code` or software scripts, information about the computational `environment` in which the research was conducted, and non-code research `protocols`
-- Results: [results/results_metadata.csv](results/results_metadata.csv) , contains subdirectories for `figures`, formatted data `tables`, or `other` formats of research results.
+- Procedures: contains subdirectories for `code` or software scripts, information about the computational `environment` in which the research was conducted, and non-code research `protocols`
+- Results: contains subdirectories for `figures`, formatted data `tables`, or `other` formats of research results.
 
 Important local **documents** include:
 - Pre-analysis plan: [docs/report/preanalysis.pdf](docs/report/preanalysis.pdf)
