@@ -34,7 +34,7 @@ We first read in the raw dataset, which was obtained from the original authors o
 
 ```{r read data}
 #-- Read in data file --#
-ds_orig <- read_sf(here("data", "raw", "private", "LAhex_ACS_MOVED_703_UTM11N.shp"))
+ds_orig <- read_sf(here("data", "raw", "private", "LAhex_ACS_2023_1.shp"))
 
 #-- Filter to analysis sample --#
 ds_restricted <- ds_orig %>% 
@@ -61,6 +61,14 @@ ds_restricted <- ds_orig %>%
                                hh.dens   = pop.tot/hh_tot,  # calculate household density
                                prt       = 100*cases/tests, # calculate crude positivity rates
                                prt_level = 0)               # create variable to fill with values later 
+
+
+# Added Imputation Step: we impute the values of two fields `age18` and `age65` using the median value of all the hexagon value. 
+# There could be better ways to improve this. 
+median_value18 <- median(ds_restricted$age18, na.rm = TRUE)
+median_value65 <- median(ds_restricted$age65, na.rm = TRUE)
+ds_restricted$age18[is.na(ds_restricted$age18)] <- median_value18
+ds_restricted$age65[is.na(ds_restricted$age65)] <- median_value65
 
 QN <- poly2nb(ds_restricted, queen = T) # queen neighbors for each polygon
 cards <- card(QN) # number of neighbors for each hexagon
@@ -422,6 +430,35 @@ pos
 
 # For a more zoomed in map, you need to adjust the values of bbox & omit the two isolated pairs of hexagons from the ds_analysis data frame
 ```
+```{r Age-adjusted testing rates, warning = FALSE}
+ds_analysis$adjtrt_quint <- ntile(ds_analysis$adjtrt, 5)
+
+Adtrt <- ggplot() + 
+  geom_sf(data = oceans, 
+          fill = "slategray2",
+          alpha = .9,
+          size = 0) +
+  geom_sf(data = roads,
+          size = .2,
+          color = "gray50") +
+  geom_sf(data=ds_analysis, 
+          aes(fill=as.factor(adjtrt_quint)),
+          size = .1,
+          inherit.aes = FALSE) +
+  theme_void() +
+  scale_fill_brewer(name = "Quintiles", palette = "YlGnBu", labels = c("Q1", "Q2", "Q3", "Q4", "Q5")) +
+  guides(fill = guide_legend(title="Cluster type")) +
+  theme(legend.position = "top") +
+  geom_sf(data = places,
+          size = 1, 
+          color = "gray0") + 
+  geom_sf_text(data = places, 
+               label = places$NAME,
+               size = 2,
+               nudge_y = .03) 
+
+Adtrt
+```
 
 
 ## Spatially lagged models
@@ -437,21 +474,17 @@ ds_analysis_centered <- ds_analysis %>%
 #-- Perform SAR on Crude Positivity Rate --#
 #---------------------------------------------#
 
+ds_analysis_centered_nona <- na.omit(ds_analysis_centered)
+
 #-- Define the regression equation --#
-reg.eq1 <- prt ~ age18 + age65 + latino + white + black + asian +  poverty + uninsured + bachelor + pop.dens + hh.dens -1
+reg.eq1 <- prt ~  age18 + age65 + latino + white + black + asian + poverty + uninsured + bachelor + pop.dens + hh.dens -1
 
-SReg.SAR1 = lagsarlm(reg.eq1, data = na.omit(ds_analysis_centered), QN1.lw)
-
-# Check the spatial weights matrix
-print(QN1.lw)
-
-# Check the number of observations
-n_obs <- nrow(ds_analysis_centered)
+SReg.SAR1 = lagsarlm(reg.eq1, data = ds_analysis_centered, QN1.lw, zero.policy = TRUE)
 
 
 #-- get the total, indirect, and direct effects --#
-check <- summary(SReg.SAR1)
-impacts.SAR1 <- impacts(SReg.SAR1, listw = QN1.lw, R = 499)
+summary(SReg.SAR1)
+impacts.SAR1 <- summary(impacts(SReg.SAR1, listw = QN1.lw, R = 499), zstats = TRUE)
 
 ```
 
