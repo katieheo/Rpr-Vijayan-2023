@@ -80,6 +80,8 @@ Important local **documents** include:
 #### Compendium reference
 
 The [template_readme.md](template_readme.md) file contains more information on the design of this template and references used in the design.
+
 The [Template_LICENSE](Template_LICENSE) file provides the BSD 3-Clause license for using this template.
+
 The template used can be found at [template_reference.bib](template_reference.bib) or:
 > Kedron, P., & Holler, J. (2023). Template for Reproducible and Replicable Research in Human-Environment and Geographical Sciences. https://doi.org/10.17605/OSF.IO/W29MQ
