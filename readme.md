@@ -1,18 +1,21 @@
-If you use this template for research, please [cite it](template_reference.bib):
-> Kedron, P., & Holler, J. (2023). Template for Reproducible and Replicable Research in Human-Environment and Geographical Sciences. https://doi.org/10.17605/OSF.IO/W29MQ
-
 # Reproduction of Vijayan et al 2020 Beyond the 405 and the 5: Geographic Variations and Factors Associated With Severe Acute Respiratory Syndrome Coronavirus 2 (SARS-CoV-2) Positivity Rates in Los Angeles County
 
 ## Contributors
 
-- Katie Heo, jheo@middlebury.edu, Middlebury College
-- Alex Xu, email address, @githubname, ORCID link, affiliated institution(s)
-
-\* Corresponding author and creator
+- Peter Kedron
+- Joseph Holler
+- Sarah Bardin
+- Joshua Gilman
+- Bryant Grady
+- Megan Seeley
+- Xin Wang
+- Wenxin Yang
+- Alex Xu
+- Katie Heo
 
 ## Abstract
 
-This is a reproduction study of:
+This study is a reproduction study of:
 
 Vijayan, T., M. Shin, P. C. Adamson, C. Harris, T. Seeman, K. C. Norris, and D. Goodman-Meza. 2020. Beyond the 405 and the 5: Geographic Variations and Factors Associated With Severe Acute Respiratory Syndrome Coronavirus 2 (SARS-CoV-2) Positivity Rates in Los Angeles County. Clinical Infectious Diseases 73 (9):e2970–e2975. DOI: 10.1093/cid/ciaa1692
 Kedron, P., Bardin, S., Holler, J., Gilman, J., Grady, B., Seeley, M., Wang, X. and Yang, W. (2023), A Framework for Moving Beyond Computational Reproducibility: Lessons from Three Reproductions of Geographical Analyses of COVID-19. Geogr Anal. https://doi.org/10.1111/gean.12370
@@ -83,5 +86,5 @@ Important local **documents** include:
 
 The [template_readme.md](template_readme.md) file contains more information on the design of this template and references used in the design.
 The [Template_LICENSE](Template_LICENSE) file provides the BSD 3-Clause license for using this template.
-To cite the template, please use [template_reference.bib](template_reference.bib) or:
+The template used can be found at [template_reference.bib](template_reference.bib) or:
 > Kedron, P., & Holler, J. (2023). Template for Reproducible and Replicable Research in Human-Environment and Geographical Sciences. https://doi.org/10.17605/OSF.IO/W29MQ
