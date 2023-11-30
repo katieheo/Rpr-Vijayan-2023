@@ -1,36 +1,35 @@
-If you use this template for research, please [cite it](template_reference.bib):
-> Kedron, P., & Holler, J. (2023). Template for Reproducible and Replicable Research in Human-Environment and Geographical Sciences. https://doi.org/10.17605/OSF.IO/W29MQ
-
 # Reproduction of Vijayan et al 2020 Beyond the 405 and the 5: Geographic Variations and Factors Associated With Severe Acute Respiratory Syndrome Coronavirus 2 (SARS-CoV-2) Positivity Rates in Los Angeles County
+
+This study is a *reproduction* study of:
+
+> Vijayan, T., M. Shin, P. C. Adamson, C. Harris, T. Seeman, K. C. Norris, and D. Goodman-Meza. 2020. Beyond the 405 and the 5: Geographic Variations and Factors Associated With Severe Acute Respiratory Syndrome Coronavirus 2 (SARS-CoV-2) Positivity Rates in Los Angeles County. Clinical Infectious Diseases 73 (9):e2970–e2975. DOI: 10.1093/cid/ciaa1692
+
+> Kedron, P., Bardin, S., Holler, J., Gilman, J., Grady, B., Seeley, M., Wang, X. and Yang, W. (2023), A Framework for Moving Beyond Computational Reproducibility: Lessons from Three Reproductions of Geographical Analyses of COVID-19. Geogr Anal. https://doi.org/10.1111/gean.12370
+
 
 ## Contributors
 
-- Katie Heo, jheo@middlebury.edu, Middlebury College
-- Alex Xu, email address, @githubname, ORCID link, affiliated institution(s)
-
-\* Corresponding author and creator
+- Peter Kedron
+- Joseph Holler
+- Sarah Bardin
+- Joshua Gilman
+- Bryant Grady
+- Megan Seeley
+- Xin Wang
+- Wenxin Yang
+- Alex Xu
+- Katie Heo
 
 ## Abstract
 
-This is a reproduction study of:
-
-Vijayan, T., M. Shin, P. C. Adamson, C. Harris, T. Seeman, K. C. Norris, and D. Goodman-Meza. 2020. Beyond the 405 and the 5: Geographic Variations and Factors Associated With Severe Acute Respiratory Syndrome Coronavirus 2 (SARS-CoV-2) Positivity Rates in Los Angeles County. Clinical Infectious Diseases 73 (9):e2970–e2975. DOI: 10.1093/cid/ciaa1692
-Kedron, P., Bardin, S., Holler, J., Gilman, J., Grady, B., Seeley, M., Wang, X. and Yang, W. (2023), A Framework for Moving Beyond Computational Reproducibility: Lessons from Three Reproductions of Geographical Analyses of COVID-19. Geogr Anal. https://doi.org/10.1111/gean.12370
-
-Write a brief abstract about your research project.
-If the project is a reproduction or replication study, include the full citation with a statement
-This study is a *reproduction/replication* of:
-
-> citation to prior study
-
-A graphical abstract of the study could also be included as an image here.
+Vijayan et al. (2020) examined whether spatial patterns existed in SARS-CoV-2 age-adjusted testing rates, age-adjusted diagnosis rates, and crude positivity rates in Los Angeles County (LAC), and used a spatial regression model to explore associations between COVID-19 crude positivity rates and a series of predictor variables. The original analyses are retrospective and use observational data collected from federal and private sources. Although not publicly available, we were able to obtain the original study data after contacting the authors. However, the analysis code was not made available, nor was information about the computational environment used.
 
 ## Study Metadata
 
-- `Key words`: Comma-separated list of keywords (tags) for searchability. Geographers often use one or two keywords each for: theory, geographic context, and methods.
-- `Subject`: select from the [BePress Taxonomy](http://digitalcommons.bepress.com/cgi/viewcontent.cgi?article=1008&context=reference)
-- `Date created`: date when project was started
-- `Date modified`: date of most recent revision
+- Key words: COVID-19, health disparity, geography, methods
+- Subject: Medicine and Health Sciences, Public Health, Epidemiology
+- Date created: 2020
+- Date modified: 2023, November
 - `Spatial Coverage`: Specify the geographic extent of your study. This may be a place name and link to a feature in a gazetteer like GeoNames or OpenStreetMap, or a well known text (WKT) representation of a bounding box.
 - `Spatial Resolution`: Specify the spatial resolution as a scale factor, description of the level of detail of each unit of observation (including administrative level of administrative areas), and/or or distance of a raster GRID size
 - `Spatial Reference System`: Specify the geographic or projected coordinate system for the study
@@ -62,16 +61,11 @@ A graphical abstract of the study could also be included as an image here.
 ## Compendium structure and contents
 
 This research compendium is structured with four main directories:
-
-- `data`: contains subdirectories for `raw` data and `derived` data.
-- `docs`: contains subdirectories for `manuscript`, `presentation`, and `report`
-- `procedure`: contains subdirectories for `code` or software scripts, information about the computational `environment` in which the research was conducted, and non-code research `protocols`
-- `results`: contains subdirectories for `figures`, formatted data `tables`, or `other` formats of research results.
-
-The data, procedures, and results of this repository are outlined in three tables:
-- Data: [data/data_index.csv](data/data_index.csv)
-- Procedures: [procedure/procedure_index.csv](procedure/procedure_index.csv)
-- Results: [results/results_index.csv](results/results_index.csv)
+The contents of this repository are outlined in three tables:
+- Data: contains subdirectories for `raw` data and `derived` data.
+- Docs: contains subdirectories for 'manuscript','presentation', and 'report'
+- Procedures: contains subdirectories for `code` or software scripts, information about the computational `environment` in which the research was conducted, and non-code research `protocols`
+- Results: contains subdirectories for `figures`, formatted data `tables`, or `other` formats of research results.
 
 Important local **documents** include:
 - Pre-analysis plan: [docs/report/preanalysis.pdf](docs/report/preanalysis.pdf)
@@ -81,7 +75,9 @@ Important local **documents** include:
 
 #### Compendium reference
 
-The [template_readme.md](template_readme.md) file contains more information on the design of this template and references used in the design.
+The [template_readme.md](template_readme.md) file contains more information on the design and rationale of this research template repository and references used in the design.
+
 The [Template_LICENSE](Template_LICENSE) file provides the BSD 3-Clause license for using this template.
-To cite the template, please use [template_reference.bib](template_reference.bib) or:
+
+The template used can be found at [template_reference.bib](template_reference.bib) or:
 > Kedron, P., & Holler, J. (2023). Template for Reproducible and Replicable Research in Human-Environment and Geographical Sciences. https://doi.org/10.17605/OSF.IO/W29MQ
