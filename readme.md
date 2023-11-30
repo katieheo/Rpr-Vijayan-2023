@@ -26,7 +26,7 @@ Vijayan et al. (2020) examined whether spatial patterns existed in SARS-CoV-2 ag
 
 ## Study Metadata
 
-- Key words: theory, geographic context, methods
+- Key words: COVID-19, health disparity, geography, methods
 - Subject: Medicine and Health Sciences, Public Health, Epidemiology
 - Date created: 2020
 - Date modified: 2023, November
