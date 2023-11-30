@@ -24,13 +24,12 @@ This study is a *reproduction* study of:
 
 Vijayan et al. (2020) examined whether spatial patterns existed in SARS-CoV-2 age-adjusted testing rates, age-adjusted diagnosis rates, and crude positivity rates in Los Angeles County (LAC), and used a spatial regression model to explore associations between COVID-19 crude positivity rates and a series of predictor variables. The original analyses are retrospective and use observational data collected from federal and private sources. Although not publicly available, we were able to obtain the original study data after contacting the authors. However, the analysis code was not made available, nor was information about the computational environment used.
 
-
 ## Study Metadata
 
-- `Key words`: Comma-separated list of keywords (tags) for searchability. Geographers often use one or two keywords each for: theory, geographic context, and methods.
-- `Subject`: select from the [BePress Taxonomy](http://digitalcommons.bepress.com/cgi/viewcontent.cgi?article=1008&context=reference)
-- `Date created`: date when project was started
-- `Date modified`: date of most recent revision
+- Key words: theory, geographic context, methods
+- Subject: Medicine and Health Sciences, Public Health, Epidemiology
+- Date created: 2020
+- Date modified: 2023, November
 - `Spatial Coverage`: Specify the geographic extent of your study. This may be a place name and link to a feature in a gazetteer like GeoNames or OpenStreetMap, or a well known text (WKT) representation of a bounding box.
 - `Spatial Resolution`: Specify the spatial resolution as a scale factor, description of the level of detail of each unit of observation (including administrative level of administrative areas), and/or or distance of a raster GRID size
 - `Spatial Reference System`: Specify the geographic or projected coordinate system for the study
@@ -62,16 +61,11 @@ Vijayan et al. (2020) examined whether spatial patterns existed in SARS-CoV-2 ag
 ## Compendium structure and contents
 
 This research compendium is structured with four main directories:
-
-- `data`: contains subdirectories for `raw` data and `derived` data.
-- `docs`: contains subdirectories for `manuscript`, `presentation`, and `report`
-- `procedure`: contains subdirectories for `code` or software scripts, information about the computational `environment` in which the research was conducted, and non-code research `protocols`
-- `results`: contains subdirectories for `figures`, formatted data `tables`, or `other` formats of research results.
-
-The data, procedures, and results of this repository are outlined in three tables:
-- Data: [data/data_index.csv](data/data_index.csv)
-- Procedures: [procedure/procedure_index.csv](procedure/procedure_index.csv)
-- Results: [results/results_index.csv](results/results_index.csv)
+The contents of this repository are outlined in three tables:
+- Data: [data/data_metadata.csv](data/data_metadata.csv) , contains subdirectories for `raw` data and `derived` data.
+- Docs: contains subdirectories for 'manuscript','presentation', and 'report'
+- Procedures: [procedure/procedure_metadata.csv](procedure/procedure_metadata.csv) , contains subdirectories for `code` or software scripts, information about the computational `environment` in which the research was conducted, and non-code research `protocols`
+- Results: [results/results_metadata.csv](results/results_metadata.csv) , contains subdirectories for `figures`, formatted data `tables`, or `other` formats of research results.
 
 Important local **documents** include:
 - Pre-analysis plan: [docs/report/preanalysis.pdf](docs/report/preanalysis.pdf)
@@ -81,7 +75,7 @@ Important local **documents** include:
 
 #### Compendium reference
 
-The [template_readme.md](template_readme.md) file contains more information on the design of this template and references used in the design.
+The [template_readme.md](template_readme.md) file contains more information on the design and rationale of this research template repository and references used in the design.
 
 The [Template_LICENSE](Template_LICENSE) file provides the BSD 3-Clause license for using this template.
 
