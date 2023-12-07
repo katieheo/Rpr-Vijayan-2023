@@ -93,7 +93,8 @@ Predictor variables were obtained from the 2018 5-year American Community Survey
 | cases630_s | cases | accumulated cases since the start of covid | integer | [0, 2964] | - | - |
 | fid | fid | hexagon ID number | integer | [14, 438] | - | - |
 | areasqkm | area | area in squared kilometers | float | [10.01, 10.02] | - | - | 
-| adjdrt630_ | adjdrt | age adjusted diagnosed rate | float | [0, 411] | - | - | 
+| adjdrt630_ | (formerly) adjdrt | age adjusted death rate | float | [0, 411] | - | - | 
+| adjcrt630_ | adjdrt | age adjusted case rate | float | [0, 8919] | - | - | 
 | adjtrt630_ | adjtrt | age adjusted testing rate | float | [1428, 98183] | - | - | 
 | Westside | westside | undefined and unused in code | Boolean | [0, 1] | - | - | 
 | pop.dens | pop.dens | population density | float | [109.2, 13471.8] | - | - |
