@@ -4,6 +4,15 @@ author: "Xin Wang, Sarah Bardin, Katie Heo, Alex Xu"
 output: html_document
 ---
 
+## Original Study Design
+-one paragraph about the Vijayan study + what were the areas of improvement we try to address in this reproduction
+
+## Alternate Study Design
+- hexagons
+- edits w tables
+- edits w variable crt
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
@@ -12,8 +21,8 @@ packages = c("sf", "tidyverse", "ggplot2", "here", "spdep", "rgdal", "spatialreg
 setdiff(packages, rownames(installed.packages()))
 install.packages(setdiff(packages, rownames(installed.packages())), quietly=TRUE)
 
-rm(list=ls())
-set.seed(59134)
+#rm(list=ls())
+#set.seed(59134)
 
 library(sf)
 library(tidyverse)
@@ -26,11 +35,15 @@ library(car)
 library(ggmap)
 library(dplyr)
 
+
+#library("groundhog")
+#pkgs <- c("sf","tidyverse", "ggplot2", "here", "spdep", "spatialreg", "car", "ggmap", "dplyr", "rmarkdown", #"knitrOK")
+#groundhog.library(pkgs, "2023-09-01")
+
 ```
 
 ## Data preprocessing
 
-We first read in the raw dataset, which was obtained from the original authors of the paper. We rename the variables to more meaningful names and calculate three variables needed for analysis. We then restrict the data set to the analysis sample per the description provided in the original paper. Specifically, we filter to observations with non-missing COVID data (non-missing testing data and non-missing rate data) and with populations of at least 1000 people. We then further restrict to hexagons with contiguous neighbors.
 
 ```{r read data}
 #-- Read in data file --#
@@ -54,7 +67,7 @@ ds_restricted <- ds_orig %>%
                                cases     = cases630_s,
                                fid       = fid, 
                                area      = areasqkm, 
-                               adjdrt    = adjdrt630_, 
+                               adjdrt    = adjcrt630_, #Changed back to d!!!!!!!!!!!!!!!
                                adjtrt    = adjtrt630_,
                                westside  = Westside) %>%
                         mutate(pop.dens  = pop.tot/10,      # calculate population density
@@ -430,8 +443,20 @@ pos
 
 # For a more zoomed in map, you need to adjust the values of bbox & omit the two isolated pairs of hexagons from the ds_analysis data frame
 ```
+Here we are reproducing the distribution map of Age-adjusted testing rates, Age-adjusted diagnosis rates, and Crude positivity rates from the original study. When creating the Age-adjusted diagnosis rates map, we found that the former reproduction study confused `adjdrt` with `adjcrt`: the variable `adjdrt` represents the "adjusted death rate", but it was recognized as the "adjusted diagnosis rate". The variable that represents "adjusted diagnosis rate" should be "adjusted case rate" (`adjcrt`). After finding this error, we corrected the first data frame mutation step where we changed `adjdrt = adjdrt630_` to `adjdrt = adjcrt630_` and reran all the code above. Now, `adjdrt` represents the adjusted diagnosis rate (aka. adjusted case rate). 
+
 ```{r Age-adjusted testing rates, warning = FALSE}
-ds_analysis$adjtrt_quint <- ntile(ds_analysis$adjtrt, 5)
+ds_analysis$adjtrt_quint <- cut(ds_analysis$adjtrt,
+                                breaks = quantile(ds_analysis$adjtrt, probs = seq(0, 1, 0.2)),
+                                include.lowest = TRUE)
+ds_analysis$adjdrt_quint <- cut(ds_analysis$adjdrt, 
+                                breaks = quantile(ds_analysis$adjdrt, probs = seq(0, 1, 0.2)),
+                                include.lowest = TRUE)
+ds_analysis$prt_quint <- cut(ds_analysis$prt, 
+                                breaks = quantile(ds_analysis$prt, probs = seq(0, 1, 0.2)),
+                                include.lowest = TRUE)
+
+
 
 Adtrt <- ggplot() + 
   geom_sf(data = oceans, 
@@ -446,9 +471,9 @@ Adtrt <- ggplot() +
           size = .1,
           inherit.aes = FALSE) +
   theme_void() +
-  scale_fill_brewer(name = "Quintiles", palette = "YlGnBu", labels = c("Q1", "Q2", "Q3", "Q4", "Q5")) +
-  guides(fill = guide_legend(title="Cluster type")) +
-  theme(legend.position = "top") +
+  scale_fill_brewer(name = "Quintiles", palette = "PRGn", direction = -1) +
+  guides(fill = guide_legend(title="Age-adjusted testing rates \n per 100 000 population")) +
+  theme(legend.position = "left") +
   geom_sf(data = places,
           size = 1, 
           color = "gray0") + 
@@ -457,7 +482,63 @@ Adtrt <- ggplot() +
                size = 2,
                nudge_y = .03) 
 
+
+
+Prt <- ggplot() + 
+  geom_sf(data = oceans, 
+          fill = "slategray2",
+          alpha = .9,
+          size = 0) +
+  geom_sf(data = roads,
+          size = .2,
+          color = "gray50") +
+  geom_sf(data=ds_analysis, 
+          aes(fill=as.factor(prt_quint)),
+          size = .1,
+          inherit.aes = FALSE) +
+  theme_void() +
+  scale_fill_brewer(name = "Quintiles", palette = "PRGn", direction = -1) +
+  guides(fill = guide_legend(title="Crude positivity rates \n percent")) +
+  theme(legend.position = "left") +
+  geom_sf(data = places,
+          size = 1, 
+          color = "gray0") + 
+  geom_sf_text(data = places, 
+               label = places$NAME,
+               size = 2,
+               nudge_y = .03) 
+
+
+
+Adjdrt <- ggplot() + 
+  geom_sf(data = oceans, 
+          fill = "slategray2",
+          alpha = .9,
+          size = 0) +
+  geom_sf(data = roads,
+          size = .2,
+          color = "gray50") +
+  geom_sf(data=ds_analysis, 
+          aes(fill=as.factor(adjdrt_quint)),
+          size = .1,
+          inherit.aes = FALSE) +
+  theme_void() +
+  scale_fill_brewer(name = "Quintiles", palette = "PRGn", direction = -1) +
+  guides(fill = guide_legend(title="Age-adjusted diagnosis rates \n per 100 000 population")) +
+  theme(legend.position = "left") +
+  geom_sf(data = places,
+          size = 1, 
+          color = "gray0") + 
+  geom_sf_text(data = places, 
+               label = places$NAME,
+               size = 2,
+               nudge_y = .03) 
+
+
+
 Adtrt
+Adjdrt
+Prt
 ```
 
 
@@ -580,7 +661,7 @@ table2_norho <- do.call(rbind,Map(data.frame,
                              ))
 
 # append rho value to the end of the table
-table_3 <- rbind(table2_norho, rho = c(SReg.SAR1[["rho"]], NA, NA, NA, NA, NA))
+table2 <- rbind(table2_norho, rho = c(SReg.SAR1[["rho"]], NA, NA, NA, NA, NA))
 
 
 write.csv(table2, here("results", "other", "Table2_SLM_CPR.csv"))
@@ -588,18 +669,17 @@ write.csv(table2, here("results", "other", "Table2_SLM_CPR.csv"))
 ## SLM for Age adjusted diagnosis rates
 # Bind together the lists from the different outputs to create data frames
 table3_norho <- do.call(rbind, Map(data.frame,
-                             Estimate = SReg.SAR2[["coefficients"]] , 
+                             Estimate = SReg.SAR2[["coefficients"]], SReg.SAR2[["rho"]], 
                              SE = SReg.SAR2[["rest.se"]],
                              Direct = impacts.SAR2[["res"]][["direct"]],
                              Indirect = impacts.SAR2[["res"]][["indirect"]],
                              Total = impacts.SAR2[["res"]][["total"]]
-                             #P = ??
                              ))
 
 # append rho value to the end of the table
 table_3 <- rbind(table3_norho, rho = c(SReg.SAR2[["rho"]], NA, NA, NA, NA, NA))
 
-write.csv(table3, here("results", "other", "Table3_SLM_AAPR.csv"))
+write.csv(table_3, here("results", "other", "Table3_SLM_AAPR_new.csv"))
 
 ## SLM for Age adjust testing rates
 # Bind together the lists from the different outputs to create data frames
@@ -618,5 +698,21 @@ table4 <- rbind(table4_norho, rho = c(SReg.SAR3[["rho"]], NA, NA, NA, NA, NA))
 
 write.csv(table4, here("results", "other", "Table4_SLM_AATR.csv"))
 ```
+## Results & Discussion
+
+Our reproduction study has identically reproduced the original study's quintile maps of testing, diagnosis, and positivity, which were not in the former reproduction study. After fixing the variable on adjusted diagnosis rate that was mis-interpreted in the former reproduction study and 
+
+```{r}
+library(broom)
+library(kableExtra)
+
+table2 %>%
+  kbl(booktabs = TRUE, digits = 4)
+```
 
 
+## Conclusion
+
+## References
+-Vijayan
+-Peter Kedron
