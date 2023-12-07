@@ -52,9 +52,7 @@ Enumerate specific **hypotheses** to be tested or **research questions** to be i
 ### Computational environment
 
 We are working on R (version 4.3.1). 
-
-Define the hardware, operating system, and software requirements for the research.
-Include citations to important software projects, plugins or packages and their versions.
+The packages we used are 'sf', 'tidyverse', 'ggplot2', 'here', 'spdep', 'spatialreg', 'car', 'ggmap', and 'dplyr'. 
 
 ### Data and variables
 
@@ -112,29 +110,9 @@ Predictor variables were obtained from the 2018 5-year American Community Survey
 
 ### Prior observations  
 
-Prior experience with the study area, prior data collection, or prior observation of the data can compromise the validity of a study, e.g. through p-hacking.
-Therefore, disclose any prior experience or observations at the time of study pre-registration here, with example text below:
-
-At the time of this study pre-registration, the authors had _____ prior knowledge of the geography of the study region with regards to the ____ phenomena to be studied.
-This study is related to ____ prior studies by the authors
-
-For each primary data source, declare the extent to which authors had already engaged with the data:
-
-- [ ] no data collection has started
-- [ ] pilot test data has been collected
-- [ ] data collection is in progress and data has not been observed
-- [ ] data collection is in progress and __% of data has been observed
-- [ ] data collection is complete and data has been observed. Explain how authors have already manipulated / explored the data.
-
-For each secondary source, declare the extent to which authors had already engaged with the data:
-
-- [ ] data is not available yet
-- [ ] data is available, but only metadata has been observed
-- [ ] metadata and descriptive statistics have been observed
-- [ ] metadata and a pilot test subset or sample of the full dataset have been observed
-- [ ] the full dataset has been observed. Explain how authors have already manipulated / explored the data.
-
-If pilot test data has been collected or acquired, describe how the researchers observed and analyzed the pilot test, and the extent to which the pilot test influenced the research design.
+At the time of this study pre-registration, we, the authors, had 0 prior knowledge of the geography of the study region with regards to the COVID positive rates distribution in regards to various demographics phenomena to be studied.
+This study is related to 0 prior studies by the authors. 
+After acquiring the secondary data, we observed the full dataset and were able to explore the data by altering the shapefile and correcting the hexagon grids connectivity. 
 
 ### Bias and threats to validity
 
@@ -185,15 +163,7 @@ Describe how the results are to be interpreted *vis a vis* each hypothesis or re
 
 ## Integrity Statement
 
-Include an integrity statement - The authors of this preregistration state that they completed this preregistration to the best of their knowledge and that no other preregistration exists pertaining to the same hypotheses and research.
-If a prior registration *does* exist, explain the rationale for revising the registration here.
-
-## Acknowledgements
-
-- `Funding Name`: name of funding for the project
-- `Funding Title`: title of project grant
-- `Award info URI`: web address for award information
-- `Award number`: award number
+We completed this preregistration to the best of our knowledge and that no other preregistration exists pertaining to the same hypotheses and research.
 
 This report is based upon the template for Reproducible and Replicable Research in Human-Environment and Geographical Sciences, DOI:[10.17605/OSF.IO/W29MQ](https://doi.org/10.17605/OSF.IO/W29MQ)
 
