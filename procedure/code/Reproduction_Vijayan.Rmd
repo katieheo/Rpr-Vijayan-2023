@@ -5,13 +5,14 @@ output: html_document
 ---
 
 ## Original Study Design
+
 -one paragraph about the Vijayan study + what were the areas of improvement we try to address in this reproduction
 
 ## Alternate Study Design
-- hexagons
-- edits w tables
-- edits w variable crt
 
+-   hexagons
+-   edits w tables
+-   edits w variable crt
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -44,6 +45,11 @@ library(dplyr)
 
 ## Data preprocessing
 
+#### *Planned Differences from the Original Study:*
+
+We found that in the original study's hexagon grid, many adjacent hexagons have gaps between them or have overlap with each other, affecting the result of spatial regression. We create new hexagon grid that fixed the connectivity problem of the hexagon grid in the original study.
+
+By changing the hexagon, we found that there are three hexagons whose entries `age18` and `age65` are null, which later impedes the SAR model from running. Since we are not able to access the original census data used by the study and re-aggregate it to the hexagon grid, we decide to impute the data by assigning the medium value of the columns of `age18` and `age65` to the blank data.
 
 ```{r read data}
 #-- Read in data file --#
@@ -67,7 +73,7 @@ ds_restricted <- ds_orig %>%
                                cases     = cases630_s,
                                fid       = fid, 
                                area      = areasqkm, 
-                               adjdrt    = adjcrt630_, #Changed back to d!!!!!!!!!!!!!!!
+                               adjdrt    = adjcrt630_, # diagnosis data should be case data, not death data
                                adjtrt    = adjtrt630_,
                                westside  = Westside) %>%
                         mutate(pop.dens  = pop.tot/10,      # calculate population density
@@ -91,9 +97,10 @@ ds_analysis <- ds_restricted[-no.neighbor.id,]
 ```
 
 ## Descriptive characteristics of the data
+
 ### Correlates of test positivity
 
-To reproduce summary statistics from Table 1 of original analysis, we first need to create a categorical variable based on the continuous positivity rate (prt). The variable prt_level divides observations into 3 mutually exclusive categories (< 5%, 5% < 10%, and 10% or greater). We then take the mean and standard deviation of key covariates to reproduce Table 1. We also performed one-way ANOVA tests to assess for differences in mean values across subgroups. Vijayan et al. noted in-text that they performed "correlational analysis" but based on the presentation of the findings, it appeared that either ANOVA or Kruskal-Wallis tests were used to assess differences across the 3 subgroups. Given that we were able to identically reproduce the reported p-value for the only non-significant result using ANOVA, we suspect that ANOVA was performed for all variables regardless of the underlying distribution.
+To reproduce summary statistics from Table 1 of original analysis, we first need to create a categorical variable based on the continuous positivity rate (prt). The variable prt_level divides observations into 3 mutually exclusive categories (\< 5%, 5% \< 10%, and 10% or greater). We then take the mean and standard deviation of key covariates to reproduce Table 1. We also performed one-way ANOVA tests to assess for differences in mean values across subgroups. Vijayan et al. noted in-text that they performed "correlational analysis" but based on the presentation of the findings, it appeared that either ANOVA or Kruskal-Wallis tests were used to assess differences across the 3 subgroups. Given that we were able to identically reproduce the reported p-value for the only non-significant result using ANOVA, we suspect that ANOVA was performed for all variables regardless of the underlying distribution.
 
 ```{r anova}
 # divide hexagons into 3 groups according to the positivity rate
@@ -274,6 +281,7 @@ basemap
 ```
 
 ## LISA
+
 LISA analyses for the adjusted testing rate, adjusted diagnosis rate, and crude positivity rate were performed, using a queens weighting matrix. Although in the original analysis, only high-high and low-low clusters were mapped, for completeness we develop maps showing all statistically significant clusters based on a permutation approach. The original authors did not specify the number of simulations performed in their analysis, so we have left the default number (N= 499) for the purposes of our reproductions.
 
 ```{r, message=FALSE, warning = FALSE}
@@ -443,7 +451,8 @@ pos
 
 # For a more zoomed in map, you need to adjust the values of bbox & omit the two isolated pairs of hexagons from the ds_analysis data frame
 ```
-Here we are reproducing the distribution map of Age-adjusted testing rates, Age-adjusted diagnosis rates, and Crude positivity rates from the original study. When creating the Age-adjusted diagnosis rates map, we found that the former reproduction study confused `adjdrt` with `adjcrt`: the variable `adjdrt` represents the "adjusted death rate", but it was recognized as the "adjusted diagnosis rate". The variable that represents "adjusted diagnosis rate" should be "adjusted case rate" (`adjcrt`). After finding this error, we corrected the first data frame mutation step where we changed `adjdrt = adjdrt630_` to `adjdrt = adjcrt630_` and reran all the code above. Now, `adjdrt` represents the adjusted diagnosis rate (aka. adjusted case rate). 
+
+Here we are reproducing the distribution map of Age-adjusted testing rates, Age-adjusted diagnosis rates, and Crude positivity rates from the original study. When creating the Age-adjusted diagnosis rates map, we found that the former reproduction study confused `adjdrt` with `adjcrt`: the variable `adjdrt` represents the "adjusted death rate", but it was recognized as the "adjusted diagnosis rate". The variable that represents "adjusted diagnosis rate" should be "adjusted case rate" (`adjcrt`). After finding this error, we corrected the first data frame mutation step where we changed `adjdrt = adjdrt630_` to `adjdrt = adjcrt630_` and reran all the code above. Now, `adjdrt` represents the adjusted diagnosis rate (aka. adjusted case rate).
 
 ```{r Age-adjusted testing rates, warning = FALSE}
 ds_analysis$adjtrt_quint <- cut(ds_analysis$adjtrt,
@@ -541,9 +550,10 @@ Adjdrt
 Prt
 ```
 
-
 ## Spatially lagged models
+
 ### Main Results
+
 Below we reproduce Table 2 of the original paper by running an SAR model where our dependent variable is the crude positivity rate and our independent variables include age, race, poverty, uninsurance, education, population density, and household density (which is really average household size)
 
 ```{r SAR positivity rate, warning=FALSE}
@@ -567,10 +577,11 @@ SReg.SAR1 = lagsarlm(reg.eq1, data = ds_analysis_centered, QN1.lw, zero.policy =
 summary(SReg.SAR1)
 impacts.SAR1 <- summary(impacts(SReg.SAR1, listw = QN1.lw, R = 499), zstats = TRUE)
 
+
 ```
 
-
 ### Supplemental Results
+
 Below we reproduce the supplemental results from the original paper by running an SAR model where our dependent variable is the adjusted diagnosis rate and our independent variables include race, poverty, uninsurance, education, population density, and household density (which is really average household size). We repeat the same analysis using the adjusted testing rate as our dependent variable.
 
 ```{r}
@@ -601,10 +612,9 @@ summary(SReg.SAR3)
 impacts.SAR3 <- summary(impacts(SReg.SAR3, listw = QN1.lw, R = 499), zstats = TRUE)
 ```
 
-
 ## RA Map Script
 
-Here is the script for saving the 3 maps as .pngs.... 
+Here is the script for saving the 3 maps as .pngs....
 
 The one issue we are having is trying to get a good base-map on here
 
@@ -639,12 +649,11 @@ ggsave(
 
 ## RA Table Script (exports tables 2, 3, and 4 as .csv)
 
-Here is how we tried to output your table 2, 3, and 4 results:
-We are having 2 issues in trying to reproduce the exact tables:
+Here is how we tried to output your table 2, 3, and 4 results: We are having 2 issues in trying to reproduce the exact tables:
 
-1) We cannot find the same results from the outputs for "indirect' or 'total' from the lagsarlm() functions... The 'indirect' and 'total' results we are getting are entirely different and although the function outputs the correct p-value, we cannot locate it in a stored list so that we can put it into a table
+1)  We cannot find the same results from the outputs for "indirect' or 'total' from the lagsarlm() functions... The 'indirect' and 'total' results we are getting are entirely different and although the function outputs the correct p-value, we cannot locate it in a stored list so that we can put it into a table
 
-2) While I have found a way to append the 'rho' value to the 'estimate', I can't locate the SE rho value and, like all the other predictor values, I can't find its p-value.
+2)  While I have found a way to append the 'rho' value to the 'estimate', I can't locate the SE rho value and, like all the other predictor values, I can't find its p-value.
 
 ```{r}
 # (note that we saved the impact testing results as impact.SAR1, impact.SAR2 and impact.SAR3)
@@ -657,7 +666,7 @@ table2_norho <- do.call(rbind,Map(data.frame,
                             Direct = impacts.SAR1[["res"]][["direct"]],
                             Indirect = impacts.SAR1[["res"]][["indirect"]],
                             Total = impacts.SAR1[["res"]][["total"]]
-                            #P = ??
+                            #P = SReg.SAR1[["Pr(>|z|)"]]
                              ))
 
 # append rho value to the end of the table
@@ -669,7 +678,7 @@ write.csv(table2, here("results", "other", "Table2_SLM_CPR.csv"))
 ## SLM for Age adjusted diagnosis rates
 # Bind together the lists from the different outputs to create data frames
 table3_norho <- do.call(rbind, Map(data.frame,
-                             Estimate = SReg.SAR2[["coefficients"]], SReg.SAR2[["rho"]], 
+                             Estimate = SReg.SAR2[["coefficients"]], 
                              SE = SReg.SAR2[["rest.se"]],
                              Direct = impacts.SAR2[["res"]][["direct"]],
                              Indirect = impacts.SAR2[["res"]][["indirect"]],
@@ -684,13 +693,12 @@ write.csv(table_3, here("results", "other", "Table3_SLM_AAPR_new.csv"))
 ## SLM for Age adjust testing rates
 # Bind together the lists from the different outputs to create data frames
 table4_norho <- do.call(rbind, Map(data.frame,
-                             Estimate = SReg.SAR3[["coefficients"]],SReg.SAR3[["rho"]], 
+                             Estimate = SReg.SAR3[["coefficients"]],
                              SE = SReg.SAR3[["rest.se"]],
                              Direct = impacts.SAR3[["res"]][["direct"]],
                              Indirect = impacts.SAR3[["res"]][["indirect"]],
                              Total = impacts.SAR3[["res"]][["total"]]
-                             #P = ??
-                             ))   
+                             ))
 
 
 # append rho value to the end of the table
@@ -698,21 +706,41 @@ table4 <- rbind(table4_norho, rho = c(SReg.SAR3[["rho"]], NA, NA, NA, NA, NA))
 
 write.csv(table4, here("results", "other", "Table4_SLM_AATR.csv"))
 ```
+
 ## Results & Discussion
 
-Our reproduction study has identically reproduced the original study's quintile maps of testing, diagnosis, and positivity, which were not in the former reproduction study. After fixing the variable on adjusted diagnosis rate that was mis-interpreted in the former reproduction study and 
+**Reproduction Results for the Descriptive Statistical Analyses of Predictors (H1):**
 
-```{r}
-library(broom)
-library(kableExtra)
+The first set of hypotheses examined by Vijayan et al. compared the distribution of a set of predictor variables across three subgroups of low, medium, and high positivity rates. Vijayan et al. did not specify the type of correlational analysis performed, so we performed one-way ANOVA tests. As shown in Table 1 below, we achieved bitwise reproduction of the original analysis results. That is, all means, standard deviations, and reported p-values from the original study were identically reproduced.
 
-table2 %>%
-  kbl(booktabs = TRUE, digits = 4)
-```
+![](images/table1.png)
 
+Although we were able to fully reproduce Vijayan et al.'s subgroup analyses, it is worth noting that diagnostic checks for the ANOVA tests indicated that most variables did not meet the normality and homoscedasticity assumptions needed for these tests. Only the distributions for the percentage of adults under the age of 18 and household density met these assumptions, while all other variables failed to meet at least one of the assumptions of ANOVA, based on post-estimation Levene and Shapiro-Wilks diagnostic tests. These findings suggest that a non-parametric test, such as a Kruskal-Wallis test, would have been more appropriate for assessing subgroup differences for the majority of predictor variables. We executed these tests for all variables. These tests produced *p*-values less than 0.001 for all variables other than percent white. For that variable the Kruskal-Wallis value was 0.63.
+
+**Reproduction Results for Spatial Pattern Analysis of SARS-CoV-2 outcomes (H2):**
+
+Consistent with the original analysis, reproductions of the LISA analyses indicate that the COVID-19 testing rates, diagnosis rates, and positivity rates are not spatially random across LA county (Fig 2).
+
+![Comparison Map of Original Study and Reproduction Study 2023](images/Original_Reproduction_Comparison_Map.png)
+
+Because a permutation-based approach was used for determining statistical significance and the Vijayan et al. did not provide requisite information for fully reproducing their analysis, it is not surprising that we were unable to achieve bitwise reproduction of these results. However, our reproductions for the diagnosis rate clusters and positivity rate clusters show clear similarities with the original analysis, even after using our new hexagons. In both cases, we find a large high-high cluster of hexagons in central LAC with low-low clusters along the western coast of LAC. Consistent with Vijayan et al.'s results, we also identified low-low diagnosis rate clusters in portions of eastern LAC. While these two reproductions generally align with the original analysis, the same can not be said of the testing rate clusters. In the original analysis, Vijayan et al. identified high-high clusters in both central and northwestern positions of LAC and low-low clusters in the southern and eastern portions of the county. In contrast, our reproductions identified a small number of high-high clusters in central LAC and no low-low clusters. Importantly, Vijayan et al. only reported high-high and low-low clusters for each of these outcomes, while our reproductions indicated that both low-high and high-low clusters were present. It is not clear whether Vijayan et al. chose to omit these findings and instead focus on high-high and low-low clusters exclusively, or if their analyses failed to identify any of these hybrid clusters.
+
+**Reproduction Results for the Spatial Lag Model Regression Testing for Predictors of SARS-CoV-2 and the Presence of a Spatial Diffusion Process in the spread of SARS-CoV-2 (H3):**
+
+The final set of hypotheses examined by Vijayan et al. assessed the relationship between a set of predictors and three response variables: the crude positivity rate, the age-adjusted diagnosis rate, and the age-adjusted testing rate. Consistent with Vijayan et al.'s original findings, results from the spatial lag model reproduction of the positivity rate model indicate a positive rho value, which was statistically significant at a p-value of 0.05, indicating the presence of a spatial diffusion process. The original *rho* value obtained by Vijayan et al. was 0.212, which was more than 4 times larger than the rho obtained during the reproduction (*rho* = 0.047).
+
+The coefficient estimates of the total effects of all predictors reported in the original analysis fall within the 95% confidence interval of the reproduction analysis, further indicating strong agreement between the reproduction and original analysis. We next used 499 simulations to estimate the direct and indirect effects of each predictor. To compare our estimates for each effect from each predictor to those of Vijayan et al., we then examined whether each effect reported by Vijayan et al. fell within our simulated 95% confidence interval. All of the original findings fall within the 2.5% and 97.5% thresholds of the effect estimate distributions for each coefficient from our simulations. This result indicates that we were able to reproduce the results.
+
+![](images/table2.png)
+
+Although not presented in the main paper, Vijayan et al. provided supplementary results for SLM analyses using what the authors label age-adjusted diagnosis rates and age-adjusted testing rates, respectively. All coefficient estimates reported in Supplementary Table 1 of the original paper fall within the 95% confidence interval of the reproduction SLM analysis (Table 3). Similarly, all coefficient estimates from Supplementary Table 2 fall within the 95% confidence interval of our reproduction SLM analysis (Table 4).
+
+![](images/table3.png)
+
+![](images/table4.png)
 
 ## Conclusion
 
 ## References
--Vijayan
--Peter Kedron
+
+-Vijayan -Peter Kedron
