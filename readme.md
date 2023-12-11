@@ -68,10 +68,8 @@ The contents of this repository are outlined in three tables:
 - Results: contains subdirectories for `figures`, formatted data `tables`, or `other` formats of research results.
 
 Important local **documents** include:
-- Pre-analysis plan: [docs/report/preanalysis.pdf](docs/report/preanalysis.md)
-- Study report: [docs/report/report.pdf](docs/report/report.pdf)
-- Manuscript: [docs/manuscript/manuscript.pdf](docs/manuscript/manuscript.pdf)
-- Presentation: [docs/presentation/presentation.pdf](docs/presentation/presentation.pdf)
+- [Pre-analysis plan](docs/report/preanalysis.md)
+- [Study report](docs/report/index.html)
 
 #### Compendium reference
 
