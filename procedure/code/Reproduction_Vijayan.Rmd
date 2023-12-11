@@ -5,14 +5,14 @@ output: html_document
 ---
 
 ## Original Study Design
-
--one paragraph about the Vijayan study + what were the areas of improvement we try to address in this reproduction
+Vijayan et al. (2020) examined whether spatial patterns existed in SARS-CoV-2 age-adjusted testing rates, age-adjusted diagnosis rates, and crude positivity rates in Los Angeles County (LAC), and used a spatial regression model to explore associations between COVID-19 crude positivity rates and a series of predictor variables. The original analyses are retrospective and use observational data collected from federal and private sources. Although not publicly available, we were able to obtain the original study data after contacting the authors. However, the analysis code was not made available, nor was information about the computational environment used. 
+Prior to analysis, the data were reapportioned to a hexagonal grid created by the authors. However, the authors provided limited details about how the hexagonal grid was generated. The authors did not provide any details about the algorithm or parameters used to create the grid. Each hexagon in the grid encompassed an area of 10 square kilometers. Once created, the grid was overlaid onto the centroids of city, community, and census tract boundaries within LAC, and all data were summarized and joined to the hexagon layer by location. Hexagons that either contained missing COVID-19 data, had a population of less than 1,000 people, or did not have contiguous neighbors were excluded from the analysis. The final analysis sample contained 184 hexagons. 
+We found that in the original study's hexagon grid, many adjacent hexagons have gaps between them or have overlap with each other, affecting the result of spatial regression. Hence, we decided to create a new hexagon grid that fixed the connectivity problem of the hexagon grid in the original study.
 
 ## Alternate Study Design
-
--   hexagons
--   edits w tables
--   edits w variable crt
+Vijayan et al. (2020) did not specify the computational environment or software used during their original study. In the absence of this information, we decided to implement these analyses in R v4.0.5 and Rstudio v1.4.1106 using the following packages: tidyverse, sp, rgdal, spatialreg, spdep. Although Vijayan et al. described using a permutation approach for identifying statistically significant clusters in their LISA analyses, they did not detail the number of simulations conducted, nor did they indicate how statistical significance was calculated for the SLM models. We elected to implement a permutation approach which used 499 simulations in order to calculate our p-values. Because there is inherent randomness in the permutation approach, when a seed is not set, and we cannot be certain of the number of simulations performed, we did not expect to be able to fully reproduce the exact p-values reported in the paper, however we expected that the direction and magnitude of the results would be consistent between the original analysis and the reproductions.  
+We decided to recreate the hexagonal grid so that it would not produce gaps between the hexagons. 
+Furthermore, we will clarify the variables death rate, case rate, and diagnosis rate as they are unclearly defined in the study. This and the change in the hexagonal grid would generate different tables, results we will explore in our discussion. 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -47,7 +47,7 @@ library(dplyr)
 
 #### *Planned Differences from the Original Study:*
 
-We found that in the original study's hexagon grid, many adjacent hexagons have gaps between them or have overlap with each other, affecting the result of spatial regression. We create new hexagon grid that fixed the connectivity problem of the hexagon grid in the original study.
+We found that in the original study's hexagon grid, many adjacent hexagons have gaps between them or have overlap with each other, affecting the result of spatial regression. Hence, we decided to create a new hexagon grid that fixed the connectivity problem of the hexagon grid in the original study.
 
 By changing the hexagon, we found that there are three hexagons whose entries `age18` and `age65` are null, which later impedes the SAR model from running. Since we are not able to access the original census data used by the study and re-aggregate it to the hexagon grid, we decide to impute the data by assigning the medium value of the columns of `age18` and `age65` to the blank data.
 
