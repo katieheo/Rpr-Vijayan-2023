@@ -117,21 +117,17 @@ After acquiring the secondary data, we observed the full dataset and were able t
 
 ### Bias and threats to validity
 
-Given the research design and primary data to be collected and/or secondary data to be used, discuss common threats to validity and the approach to mitigating those threats, with an emphasis on geographic threats to validity.
+The choice of a hexagonal grid as the spatial unit of analysis may introduce the risk of the Modifiable Areal Unit Problem. 
+This problem arises when the results of an analysis are dependent on the arbitrary choice of spatial units. In this case, 
+aggregating data into hexagons masked important variations at a finer spatial scale and introduce distortion in the observed
+relationships. Hence, we will recreate the hexagonal layer to get rid of the gaps. 
 
-These include:
-  - uneven primary data collection due to geographic inaccessibility or other constraints
-  - multiple hypothesis testing
-  - edge or boundary effects
-  - the modifiable areal unit problem
-  - nonstationarity
-  - spatial dependence or autocorrelation
-  - temporal dependence or autocorrelation
-  - spatial scale dependency
-  - spatial anisotropies
-  - confusion of spatial and a-spatial causation
-  - ecological fallacy
-  - uncertainty e.g. from spatial disaggregation, anonymization, differential privacy
+Another issue that may come up is assumptions in data translation to hexagonal grid, as Vijayan et al. did not provide sufficient 
+details on how the translation from original geographic units (tract, city, and county levels) to the hexagonal grid was performed. 
+The lack of clarity on how centroids were associated and whether multiple tracts, cities, or counties intersected the same 
+hexagonal unit introduced uncertainty and potential bias in the analysis.
+
+Another threat may be standardization of variables as there is a lack of clarity on whether the response variables were standardized in addition to the predictor variables raises concerns about the proper interpretation of coefficients in the spatial regression models. The omission of the model intercept further complicates the interpretation of results.
 
 ### Data transformations
 
@@ -153,13 +149,9 @@ Variables: Predictor variables used in the spatial regression analysis included 
 Because the Census data were originally obtained at the tract level, a spatial transformation was needed to convert the tract data to the hexagon level. According to the original paper, this transformation was achieved by associating tracts to the hexagon in which the centroid was located, however, the authors do not provide details regarding whether additional manipulation of the raw data occurred (e.g. averaging the values of characteristics across multiple tracts located within a single hexagon).
 The response variables examined by the original authors were 1) COVID-19 age-adjusted testing rates, 2) age-adjusted diagnosis rates, and 3) crude positivity rates. The crude positivity rate was calculated by dividing the count of positive COVID-19 cases by the number of tests conducted and multiplying by 100. We will identify the same three response variables, making sure to clarify the case rate, death rate, and diagnosis rate as they are crucial for a clear presentation of the data. 
 
-## Results
+## Results and Discussion
 
-Describe how results are to be presented.
-
-## Discussion
-
-Describe how the results are to be interpreted *vis a vis* each hypothesis or research question.
+Similar to how the former reproduction study's report is structured, we are going to compare our reproduction result with the original study's result on descriptive statistical analyses of predictors, spatial pattern analysis, and Spatial Lag Model Regression (SLMR) testing for predictors. We expect to see small changes in spatial pattern analysis and SLMR testing as we changed the hexagons of the original study that fixed the connectivity problems of the hexagon in LAC. We will then discuss the significance of each variables. 
 
 ## Integrity Statement
 
