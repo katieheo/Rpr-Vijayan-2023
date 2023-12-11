@@ -7,7 +7,7 @@
 
 ### Abstract
 
-Write a brief abstract about your research project.
+This study replicates and extends the spatial analysis conducted by Vijayan et al. (2020) on SARS-CoV-2 outcomes in Los Angeles County (LAC). Vijayan et al. (2020) examined whether spatial patterns existed in SARS-CoV-2 age-adjusted testing rates, age-adjusted diagnosis rates, and crude positivity rates in Los Angeles County (LAC), utilizing a hexagonal grid to explore associations between COVID-19 crude positivity rates and a series of predictor variables. However, issues with the grid's connectivity prompted the creation of a new grid for this reproduction. The study also addressed data imputation challenges in variables 'age18' and 'age65'. Using R and spatial analysis packages, we performed LISA analyses, reproducing clusters for testing rates, diagnosis rates, and positivity rates. The spatial lag models were replicated to assess predictors' effects on crude positivity rates, age-adjusted diagnosis rates, and age-adjusted testing rates. Our results provides insights into spatial patterns and predictors of SARS-CoV-2 outcomes in Los Angeles County.
 
 This study is a *reproduction* study of:
 
@@ -15,37 +15,29 @@ This study is a *reproduction* study of:
 
 > Kedron, P., Bardin, S., Holler, J., Gilman, J., Grady, B., Seeley, M., Wang, X. and Yang, W. (2023), A Framework for Moving Beyond Computational Reproducibility: Lessons from Three Reproductions of Geographical Analyses of COVID-19. Geogr Anal. https://doi.org/10.1111/gean.12370
 
-### Study metadata
-
-- `Key words`: Comma-separated list of keywords (tags) for searchability. Geographers often use one or two keywords each for: theory, geographic context, and methods.
-- `Subject`: select from the [BePress Taxonomy](http://digitalcommons.bepress.com/cgi/viewcontent.cgi?article=1008&context=reference)
-- `Date created`: date when project was started
-- `Date modified`: date of most recent revision
-- `Spatial Coverage`: Specify the geographic extent of your study. This may be a place name and link to a feature in a gazetteer like GeoNames or OpenStreetMap, or a well known text (WKT) representation of a bounding box.
-- `Spatial Resolution`: Specify the spatial resolution as a scale factor, description of the level of detail of each unit of observation (including administrative level of administrative areas), and/or or distance of a raster GRID size
-- `Spatial Reference System`: Specify the geographic or projected coordinate system for the study, e.g. EPSG:4326
-- `Temporal Coverage`: Specify the temporal extent of your study---i.e. the range of time represented by the data observations.
-- `Temporal Resolution`: Specify the temporal resolution of your study---i.e. the duration of time for which each observation represents or the revisit period for repeated observations
-- `Funding Name`: name of funding for the project
-- `Funding Title`: title of project grant
-- `Award info URI`: web address for award information
-- `Award number`: award number
-
 #### Original study spatio-temporal metadata
 
-- `Spatial Coverage`: extent of original study
-- `Spatial Resolution`: resolution of original study
-- `Spatial Reference System`: spatial reference system of original study
-- `Temporal Coverage`: temporal extent of original study
-- `Temporal Resolution`: temporal resolution of original study
+- `Spatial Coverage`: LAC
+- `Spatial Resolution`: 10 km hexagons
+- `Spatial Reference System`: -
+- `Temporal Coverage`: 2020 March 1st - 2020 June 30th  
+- `Temporal Resolution`: -
 
 ## Study design
 
-Describe how the study relates to prior literature, e.g. is it a **original study**, **meta-analysis study**, **reproduction study**, **reanalysis study**, or **replication study**?
+This study is a reproduction study of the Vijayan et al. 2020 study. 
 
-Also describe the original study archetype, e.g. is it **observational**, **experimental**, **quasi-experimental**, or **exploratory**?
+The original analyses are retrospective and use observational data collected from federal and private sources. Although not publicly available, we were able to obtain the original study data after contacting the authors. However, the analysis code was not made available, nor was information about the computational environment used.
 
-Enumerate specific **hypotheses** to be tested or **research questions** to be investigated here, and specify the type of method, statistical test or model to be used on the hypothesis or question.
+Research hypotheses:
+H1: There is a difference in mean values of key socioeconomic and demographic variables by positivity rate groupings of low, medium, and high areas.
+Original test: One-way analysis of variance (ANOVA) indicated that all variables, except the percentage black, exhibited statistically significant differences among the three subgroups (Table 1).
+
+H2: (a) COVID-19 age-adjusted testing rate, (b) age-adjusted diagnosis rate, and (c) crude positivity rate were non-randomly distributed throughout LA County.
+Original test: Local indicators of spatial association (LISA) identified elevated values of each variable around the center of LA, and depressed values around the edges of the county (Fig. 1)
+
+H3: Socio-structural characteristics of LAC have non-zero association with crude positivity rate.
+Original test: The authors used a regression model with a spatially lagged response was to identify significant positive associations between crude positivity and (i) proportion of population over 65, (ii) proportion Latino, proportion living in poverty, and (iii) housing density. 
 
 ## Materials and procedure
 
@@ -151,7 +143,7 @@ The response variables examined by the original authors were 1) COVID-19 age-adj
 
 ## Results and Discussion
 
-Similar to how the former reproduction study's report is structured, we are going to compare our reproduction result with the original study's result on descriptive statistical analyses of predictors, spatial pattern analysis, and Spatial Lag Model Regression (SLMR) testing for predictors. We expect to see small changes in spatial pattern analysis and SLMR testing as we changed the hexagons of the original study that fixed the connectivity problems of the hexagon in LAC. We will then discuss the significance of each variables. 
+Similar to how the former reproduction study's report is structured, we are going to compare our reproduction result with the original study's result on descriptive statistical analyses of predictors, spatial pattern analysis, and Spatial Lag Model Regression (SLMR) testing for predictors. We expect to see small changes in spatial pattern analysis and SLM regression testing as we changed the hexagons of the original study that fixed the connectivity problems of the hexagon in LAC. We will then discuss the significance of each predictors on the three response variables. 
 
 ## Integrity Statement
 
