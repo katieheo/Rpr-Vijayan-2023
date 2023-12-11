@@ -135,24 +135,23 @@ These include:
 
 ### Data transformations
 
-Describe all data transformations planned to prepare data sources for analysis.
-This section should explain with the fullest detail possible how to transform data from the **raw** state at the time of acquisition or observation, to the pre-processed **derived** state ready for the main analysis.
-Including steps to check and mitigate sources of **bias** and **threats to validity**.
-The method may anticipate **contingencies**, e.g. tests for normality and alternative decisions to make based on the results of the test.
-More specifically, all the **geographic** and **variable** transformations required to prepare input data as described in the data and variables section above to match the study's spatio-temporal characteristics as described in the study metadata and study design sections.
-Visual workflow diagrams may help communicate the methodology in this section.
-
-Examples of **geographic** transformations include coordinate system transformations, aggregation, disaggregation, spatial interpolation, distance calculations, zonal statistics, etc.
-
-Examples of **variable** transformations include standardization, normalization, constructed variables, imputation, classification, etc.
-
-Be sure to include any steps planned to **exclude** observations with *missing* or *outlier* data, to **group** observations by *attribute* or *geographic* criteria, or to **impute** missing data or apply spatial or temporal **interpolation**.
+We do not intend to transform data or use data from different data sources to what are provided from the Vijayan et al. study. Our goal is to create a hexagonal grid that overlays the data better as to not create gaps between the hexagons for a more accurate presentation of the data. 
+The original analyses are retrospective and use observational data collected from federal and private sources. Although not publicly available, we were able to obtain the original study data after contacting the authors. However, the analysis code was not made available, nor was information about the computational environment used.
 
 ### Analysis
 
-Describe the methods of analysis that will directly test the hypotheses or provide results to answer the research questions.
-This section should explicitly define any spatial / statistical *models* and their *parameters*, including *grouping* criteria, *weighting* criteria, and *significance thresholds*.
-Also explain any follow-up analyses or validations.
+The major difference we intend to make in the study is the hexagonal grid. We found that in the original study's hexagon grid, many adjacent hexagons have gaps between them or have overlap with each other, affecting the result of spatial regression. Hence, we decided to create a new hexagon grid that fixed the connectivity problem of the hexagon grid in the original study.
+
+Sampling Plan and Data Description: Vijayan et al. collected data from online, publicly available datasets.
+Predictor variables were obtained from the 2018 5-year American Community Survey at the census tract level. Syndrome Coronavirus 2 (SARS-CoV-2) or COVID-19 testing and diagnosis data were obtained from the LAC Department of Public Health COVID-19 surveillance dashboard (http://dashboard.publichealth. lacounty.gov/covid19_surveillance_dashboard/) through 30 June 2022. 
+Prior to analysis, the data were reapportioned to a hexagonal grid created by the authors. However, the authors provided limited details about how the hexagonal grid was generated. The authors did not provide any details about the algorithm or parameters used to create the grid. Each hexagon in the grid encompassed an area of 10 square kilometers. Once created, the grid was overlaid onto the centroids of city, community, and census tract boundaries within LAC, and all data were summarized and joined to the hexagon layer by location. Hexagons that either contained missing COVID-19 data, had a population of less than 1,000 people, or did not have contiguous neighbors were excluded from the analysis. The final analysis sample contained 184 hexagons. 
+Variables: Predictor variables used in the spatial regression analysis included measures of: race/ethnicity, poverty, insurance status, educational status, population density and household density. The percentage of those under the age of 18 and above the age of  65 were also assessed in relation to COVID-19 positivity rates. 
+●	Race/ethnicity was expressed as a percentage of the population and segmented into four categories - non-Hispanic white, non-Hispanic Black, Asian, and Hispanic or Latino/a groups. 
+●	Poverty was measured as the percentage of households living below the federal family poverty threshold. 
+●	Educational status was measured as the percentage who completed a bachelor’s degree or higher. 
+●	Population density was calculated by dividing the total population within each hexagon by the area of the hexagon. Although referred to as household density by Vijayan et al., this variable was calculated by dividing the total population within the hexagon by the number of reported households in the hexagon, and therefore captures the average household size within each hexagon as opposed to density. 
+Because the Census data were originally obtained at the tract level, a spatial transformation was needed to convert the tract data to the hexagon level. According to the original paper, this transformation was achieved by associating tracts to the hexagon in which the centroid was located, however, the authors do not provide details regarding whether additional manipulation of the raw data occurred (e.g. averaging the values of characteristics across multiple tracts located within a single hexagon).
+The response variables examined by the original authors were 1) COVID-19 age-adjusted testing rates, 2) age-adjusted diagnosis rates, and 3) crude positivity rates. The crude positivity rate was calculated by dividing the count of positive COVID-19 cases by the number of tests conducted and multiplying by 100. We will identify the same three response variables, making sure to clarify the case rate, death rate, and diagnosis rate as they are crucial for a clear presentation of the data. 
 
 ## Results
 
@@ -169,3 +168,7 @@ We completed this preregistration to the best of our knowledge and that no other
 This report is based upon the template for Reproducible and Replicable Research in Human-Environment and Geographical Sciences, DOI:[10.17605/OSF.IO/W29MQ](https://doi.org/10.17605/OSF.IO/W29MQ)
 
 ## References
+
+> Vijayan, T., M. Shin, P. C. Adamson, C. Harris, T. Seeman, K. C. Norris, and D. Goodman-Meza. 2020. Beyond the 405 and the 5: Geographic Variations and Factors Associated With Severe Acute Respiratory Syndrome Coronavirus 2 (SARS-CoV-2) Positivity Rates in Los Angeles County. Clinical Infectious Diseases 73 (9):e2970–e2975. DOI: 10.1093/cid/ciaa1692
+
+> Kedron, P., Bardin, S., Holler, J., Gilman, J., Grady, B., Seeley, M., Wang, X. and Yang, W. (2023), A Framework for Moving Beyond Computational Reproducibility: Lessons from Three Reproductions of Geographical Analyses of COVID-19. Geogr Anal. https://doi.org/10.1111/gean.12370
