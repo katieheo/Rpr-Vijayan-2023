@@ -777,6 +777,14 @@ Finally, Vijayan et al. noted that they standardized all variables prior to impl
 
 ## Conclusion
 
+In conclusion, our reproduction of Vijayan et al.'s study aimed to assess the spatial patterns and predictors of COVID-19 outcomes in Los Angeles County. While we encountered challenges due to missing details in the original study, such as the hexagon grid generation method and simulation parameters, we attempted to address these gaps. Our new hexagon grid aimed to fix connectivity issues observed in the original grid.
+
+The reproduction results generally align with the original study, demonstrating spatial patterns in SARS-CoV-2 outcomes and supporting the presence of a spatial diffusion process. Descriptive statistics, LISA analyses, and spatial lag models showed consistent trends. However, discrepancies were observed in testing rate clusters, indicating potential variations in findings.
+
+Despite challenges in reproducing exact statistical values, we achieved rough alignment in results, supporting the robustness of the original findings. Table 3 and 4 (re: Discussion) were not reported explicitly in the original study and were attached as supplementary data, which we worked on reproducing in this document. The importance of transparency in research methods, code availability, and detailed reporting is emphasized, as it enables better reproducibility and understanding of study nuances.
+
+Our study contributes to the ongoing discussion on reproducibility in scientific research, highlighting the need for transparent reporting and sharing of code and data. The discrepancies observed underscore the importance of detailed documentation for studies to be accurately replicated, fostering a culture of transparency and scientific rigor in epidemiological research.
+
 ## References
 
 Vijayan, T., M. Shin, P. C. Adamson, C. Harris, T. Seeman, K. C. Norris, and D. Goodman-Meza. 2020. Beyond the 405 and the 5: Geographic Variations and Factors Associated With Severe Acute Respiratory Syndrome Coronavirus 2 (SARS-CoV-2) Positivity Rates in Los Angeles County. Clinical Infectious Diseases 73 (9):e2970--e2975. DOI: 10.1093/cid/ciaa1692
