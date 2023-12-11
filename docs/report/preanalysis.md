@@ -143,7 +143,7 @@ The response variables examined by the original authors were 1) COVID-19 age-adj
 
 ## Results and Discussion
 
-Similar to how the former reproduction study's report is structured, we are going to compare our reproduction result with the original study's result on descriptive statistical analyses of predictors, spatial pattern analysis, and Spatial Lag Model Regression (SLMR) testing for predictors. We expect to see small changes in spatial pattern analysis and SLMR testing as we changed the hexagons of the original study that fixed the connectivity problems of the hexagon in LAC. We will then discuss the significance of each variables. 
+Similar to how the former reproduction study's report is structured, we are going to compare our reproduction result with the original study's result on descriptive statistical analyses of predictors, spatial pattern analysis, and Spatial Lag Model Regression (SLMR) testing for predictors. We expect to see small changes in spatial pattern analysis and SLM regression testing as we changed the hexagons of the original study that fixed the connectivity problems of the hexagon in LAC. We will then discuss the significance of each predictors on the three response variables. 
 
 ## Integrity Statement
 
