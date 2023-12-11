@@ -153,9 +153,9 @@ Variables: Predictor variables used in the spatial regression analysis included 
 Because the Census data were originally obtained at the tract level, a spatial transformation was needed to convert the tract data to the hexagon level. According to the original paper, this transformation was achieved by associating tracts to the hexagon in which the centroid was located, however, the authors do not provide details regarding whether additional manipulation of the raw data occurred (e.g. averaging the values of characteristics across multiple tracts located within a single hexagon).
 The response variables examined by the original authors were 1) COVID-19 age-adjusted testing rates, 2) age-adjusted diagnosis rates, and 3) crude positivity rates. The crude positivity rate was calculated by dividing the count of positive COVID-19 cases by the number of tests conducted and multiplying by 100. We will identify the same three response variables, making sure to clarify the case rate, death rate, and diagnosis rate as they are crucial for a clear presentation of the data. 
 
-## Results
+## Results and Discussion
 
-Describe how results are to be presented.
+Similar to how the former reproduction study's report is structured, we are going to compare our reproduction result with the original study's result on descriptive statistical analyses of predictors, spatial pattern analysis, and Spatial Lag Model Regression (SLMR) testing for predictors. We expect to see small changes in spatial pattern analysis and SLMR testing as we changed the hexagons of the original study that fixed the connectivity problems of the hexagon in LAC. We will then discuss the significance of each variables. 
 
 ## Discussion
 
